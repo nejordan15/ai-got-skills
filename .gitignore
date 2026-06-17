@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+env/
+venv/
+.env
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# editors / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+
+# Claude Code workspace artifacts (per project conventions)
+.claude/workspaces/
+.claude/worktrees/
+.claude/file-history/
+.claude/skills/*-workspace/
