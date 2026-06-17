@@ -17,8 +17,8 @@ See [`.claude/skills/atlassian-api/SKILL.md`](.claude/skills/atlassian-api/SKILL
 Clone this repo somewhere, then either symlink the skill into a project's `.claude/skills/` or into your global `~/.claude/skills/`:
 
 ```bash
-git clone <this-repo-url> ~/personaldev/ai-got-skills
-cd ~/personaldev/ai-got-skills
+git clone <this-repo-url> ~/path/to/ai-got-skills
+cd ~/path/to/ai-got-skills
 
 # Option A — make available to ALL Claude Code projects (recommended):
 ln -s "$PWD/.claude/skills/atlassian-api" ~/.claude/skills/atlassian-api
