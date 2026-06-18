@@ -2,7 +2,6 @@
   "name": "atlassian",
   "displayName": "Atlassian Tools",
   "description": "Direct Atlassian REST API access as a faster and more accurate alternative to the MCP.",
-  "version": "0.1.0",
   "author": {
     "name": "nejordan15",
     "email": "nejordan15@gmail.com"
