@@ -117,7 +117,8 @@ ai-got-skills/
         │   └── _client.py            ← shared auth/REST client (used by all skills)
         ├── TODO.md                   ← planned work (e.g. jira-api skill)
         ├── tests/
-        │   └── test_confluence.py    ← happy-path unit tests (mocked client)
+        │   ├── test_client.py        ← happy-path tests for lib/_client.py
+        │   └── test_confluence.py    ← happy-path tests for the CLI (mocked client)
         └── skills/
             └── confluence-api/
                 ├── SKILL.md          ← invocation manifest for Claude Code
