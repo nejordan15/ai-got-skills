@@ -1,9 +1,9 @@
 # ai-got-skills
 
-A personal [Claude Code](https://docs.claude.com/en/docs/claude-code) **plugin marketplace**. Installing a plugin from here makes its skills available in Claude Code from *any* directory — no per-project copying or symlinking.
+Ey, I got skills: another place for claude skills.
 
-- **Marketplace:** `ai-got-skills` (this repo)
-- **Plugins:** `atlassian` (more later)
+- **Marketplace:** `ai-got-skills` 
+- **Plugins:** `atlassian` 
 
 ## Plugins
 
@@ -12,8 +12,8 @@ A personal [Claude Code](https://docs.claude.com/en/docs/claude-code) **plugin m
 Direct REST API access to Atlassian Cloud — a faster, more accurate alternative to the Atlassian MCP. Confluence is implemented today; Jira is planned (the shared client already supports it).
 
 - **Skill:** `confluence-api` (invoke as `/atlassian:confluence-api`; Claude also triggers it automatically by description)
-- **Manifest:** [`plugins/atlassian/skills/confluence-api/SKILL.md`](plugins/atlassian/skills/confluence-api/SKILL.md)
-- **Shared client:** [`plugins/atlassian/lib/_client.py`](plugins/atlassian/lib/_client.py) — common auth/REST setup, reused by future skills (e.g. `jira-api`; see [`TODO.md`](plugins/atlassian/TODO.md))
+- **Manifest:** `[plugins/atlassian/skills/confluence-api/SKILL.md](plugins/atlassian/skills/confluence-api/SKILL.md)`
+- **Shared client:** `[plugins/atlassian/lib/_client.py](plugins/atlassian/lib/_client.py)` — common auth/REST setup, reused by future skills (e.g. `jira-api`; see `[TODO.md](plugins/atlassian/TODO.md)`)
 
 **Why it exists:** the standard MCP path requires Claude to emit the entire page body on every update. On a 50 KB page that's many minutes of model output per edit. This skill writes via Atlassian's REST API directly from a local body file, so Claude only emits the diff (via the `Edit` tool). The result is roughly an order-of-magnitude speedup on large-page updates and exact preservation of Confluence-native macros (info panels, table widths, code-block widths) that the MCP path flattens.
 
@@ -101,7 +101,7 @@ python3 $SKILL/confluence.py update \
   --message "what changed"
 ```
 
-See [`SKILL.md`](plugins/atlassian/skills/confluence-api/SKILL.md) for the full CLI surface, including `--from-markdown` and `--keep-appearance`.
+See `[SKILL.md](plugins/atlassian/skills/confluence-api/SKILL.md)` for the full CLI surface, including `--from-markdown` and `--keep-appearance`.
 
 ## Layout
 
@@ -132,42 +132,9 @@ ai-got-skills/
                     └── confluence.py ← imports ../../lib/_client.py
 ```
 
-## Contributing / extending
+## Contributing
 
-- **Add a skill to an existing plugin:** create `plugins/<plugin>/skills/<name>/SKILL.md` with YAML frontmatter (`name` + `description`); put helper scripts under `assets/`. It's discovered automatically under the plugin's `skills/` dir.
-- **Add a new plugin:** create `plugins/<name>/.claude-plugin/plugin.json`, then add an entry to `.claude-plugin/marketplace.json` with `source: "./plugins/<name>"`.
-- **After editing:** because the marketplace source is a local `directory`, run `claude plugin marketplace update ai-got-skills` if a change doesn't show up in a new session (plugins are cached on install).
-
-### Tests
-
-Use the `Makefile` from the repo root:
-
-```bash
-make unit          # happy-path unit tests — mocked client, no network
-make integration   # live Confluence lifecycle test (see below)
-make lint          # ruff (pip3 install --user -r requirements-dev.txt)
-```
-
-**Unit tests** use stdlib `unittest` with the Confluence client mocked — no network, no `atlassian-python-api` install required.
-
-**Integration test** runs the full lifecycle against a real Confluence instance — create → update → read → move → delete (it really creates and deletes pages, then cleans up). It's skipped unless these env vars are set:
-
-| Var | Purpose |
-|---|---|
-| `ATLASSIAN_BASE_URL`, `ATLASSIAN_EMAIL`, `ATLASSIAN_API_TOKEN` | Same credentials the skill uses |
-| `INTEGRATION_TEST_SPACE` | A space key you can write to (e.g. `DOCS` or a personal space like `~012345`) |
-
-Set the space key inline, or put it in a gitignored `local-integration-tests.env` at the repo root (the `integration` target sources it automatically if present):
-
-```bash
-# local-integration-tests.env  (gitignored)
-INTEGRATION_TEST_SPACE='~012345'   # quote it — keeps the shell from expanding a leading ~
-```
-
-```bash
-make integration                      # uses local-integration-tests.env if present
-INTEGRATION_TEST_SPACE=DOCS make integration   # or set it inline
-```
+See [CONTRIBUTING.md](CONTRIBUTING.md) for how to add skills/plugins and run the tests (`make unit` / `make integration` / `make lint`).
 
 ## License
 
