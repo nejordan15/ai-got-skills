@@ -1,11 +1,11 @@
 ---
-name: atlassian-api
-description: Direct Atlassian REST API access (Confluence now; Jira later) via the atlassian-python-api library. Use when updating large Confluence pages where the MCP updateConfluencePage tool would require re-emitting the full body (orders of magnitude slower than the diff-based approach this skill enables). Also use for creating pages programmatically, fetching page bodies to local files for offline editing, or any Confluence operation paired with the Edit tool on a local body file. Triggers: "use the atlassian api", "update via the api directly", "fast confluence publish", "bypass mcp for confluence", "fetch the page body locally".
+name: confluence-api
+description: Direct Confluence REST API access via the atlassian-python-api library. Use when updating large Confluence pages where the MCP updateConfluencePage tool would require re-emitting the full body (orders of magnitude slower than the diff-based approach this skill enables). Also use for creating pages programmatically, fetching page bodies to local files for offline editing, or any Confluence operation paired with the Edit tool on a local body file. Triggers: "use the confluence api", "update via the api directly", "fast confluence publish", "bypass mcp for confluence", "fetch the page body locally".
 ---
 
-# atlassian-api
+# confluence-api
 
-Direct REST API access to Atlassian Cloud (Confluence now; Jira architecture-ready for later). Bypasses the MCP `updateConfluencePage` tool's full-body round-trip — pair with the `Edit` tool on a local body file for fast incremental publishes.
+Direct REST API access to Confluence Cloud. Bypasses the MCP `updateConfluencePage` tool's full-body round-trip — pair with the `Edit` tool on a local body file for fast incremental publishes. (Jira will get its own sibling `jira-api` skill — not yet implemented; the shared client at `plugins/atlassian/lib/_client.py` already supports it.)
 
 ## When to use
 
@@ -18,7 +18,7 @@ Direct REST API access to Atlassian Cloud (Confluence now; Jira architecture-rea
 
 - One-off small page edits — MCP's `updateConfluencePage` is simpler when the whole body fits comfortably in one response.
 - Page operations needing ADF-specific macros not expressible in wiki markup (use the UI or the MCP tool).
-- Jira ops — not implemented yet.
+- Jira ops — use the (future) `jira-api` skill; not implemented yet.
 
 ## Prerequisites
 
@@ -99,4 +99,4 @@ Storage values for appearance:
 
 ## Future: Jira
 
-`assets/_client.py` reads `ATLASSIAN_EMAIL` + `ATLASSIAN_API_TOKEN` which are shared between Confluence and Jira. Adding a `jira.py` sibling next to `confluence.py` with parallel `get`/`create`/`update`/`comment`/`transition` subcommands is the planned extension — not yet implemented.
+The shared client `plugins/atlassian/lib/_client.py` reads `ATLASSIAN_EMAIL` + `ATLASSIAN_API_TOKEN` (shared between Confluence and Jira) and already exposes a `jira_client()`. The planned extension is a separate `jira-api` skill alongside this one — its own `jira.py` script importing the same `lib/_client.py`, with `get`/`create`/`update`/`comment`/`transition` subcommands. Not yet implemented; see `plugins/atlassian/TODO.md`.

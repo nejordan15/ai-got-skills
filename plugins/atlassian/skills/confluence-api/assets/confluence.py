@@ -18,8 +18,9 @@ import argparse
 import pathlib
 import sys
 
-# Allow running this file directly from assets/ — _client.py sits next to it.
-sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+# Shared client lives at the plugin root: plugins/atlassian/lib/_client.py.
+# From this file (…/skills/confluence-api/assets/confluence.py) that's parents[3]/lib.
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[3] / "lib"))
 
 from _client import confluence_client, CONFLUENCE_BASE_URL  # noqa: E402
 
