@@ -1,0 +1,2 @@
+# Dev tooling for `make lint`. Install with: pip3 install --user -r requirements-dev.txt
+ruff>=0.6

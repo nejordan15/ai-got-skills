@@ -24,7 +24,7 @@ os.environ.setdefault("ATLASSIAN_BASE_URL", "https://example.atlassian.net")
 os.environ.setdefault("ATLASSIAN_EMAIL", "test@example.com")
 os.environ.setdefault("ATLASSIAN_API_TOKEN", "dummy-token")
 
-ASSETS = pathlib.Path(__file__).resolve().parents[1] / "skills" / "confluence-api" / "assets"
+ASSETS = pathlib.Path(__file__).resolve().parents[2] / "skills" / "confluence-api" / "assets"
 sys.path.insert(0, str(ASSETS))
 import confluence  # noqa: E402
 
@@ -120,6 +120,23 @@ class ConfluenceHappyPath(unittest.TestCase):
         self.assertTrue(kwargs["full_width"])
         # title was supplied, so no extra fetch is needed to look it up.
         client.get_page_by_id.assert_not_called()
+
+    @mock.patch("confluence.confluence_client")
+    def test_move_calls_move_page(self, factory):
+        client = factory.return_value
+        _run(
+            confluence.cmd_move,
+            _ns(page_id="123", space_key="DOCS", target_id="999", position="append"),
+        )
+        client.move_page.assert_called_once_with(
+            space_key="DOCS", page_id="123", target_id="999", position="append"
+        )
+
+    @mock.patch("confluence.confluence_client")
+    def test_delete_calls_remove_page(self, factory):
+        client = factory.return_value
+        _run(confluence.cmd_delete, _ns(page_id="123", recursive=False))
+        client.remove_page.assert_called_once_with("123", recursive=False)
 
 
 if __name__ == "__main__":

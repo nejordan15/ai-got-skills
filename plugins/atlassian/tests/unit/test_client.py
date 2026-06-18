@@ -21,7 +21,7 @@ os.environ.setdefault("ATLASSIAN_BASE_URL", "https://example.atlassian.net")
 os.environ.setdefault("ATLASSIAN_EMAIL", "test@example.com")
 os.environ.setdefault("ATLASSIAN_API_TOKEN", "dummy-token")
 
-LIB = pathlib.Path(__file__).resolve().parents[1] / "lib"
+LIB = pathlib.Path(__file__).resolve().parents[2] / "lib"
 sys.path.insert(0, str(LIB))
 import _client  # noqa: E402
 

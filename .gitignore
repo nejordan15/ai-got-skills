@@ -13,6 +13,9 @@ venv/
 .mypy_cache/
 .ruff_cache/
 
+# local integration test config (real space key / creds — never commit)
+local-integration-tests.env
+
 # editors / OS
 .idea/
 .vscode/

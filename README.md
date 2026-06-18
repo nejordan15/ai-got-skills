@@ -107,6 +107,8 @@ See [`SKILL.md`](plugins/atlassian/skills/confluence-api/SKILL.md) for the full 
 
 ```
 ai-got-skills/
+├── Makefile                          ← make unit / lint / integration
+├── requirements-dev.txt              ← dev tooling (ruff) for `make lint`
 ├── .claude-plugin/
 │   └── marketplace.json              ← marketplace catalog
 └── plugins/
@@ -117,8 +119,11 @@ ai-got-skills/
         │   └── _client.py            ← shared auth/REST client (used by all skills)
         ├── TODO.md                   ← planned work (e.g. jira-api skill)
         ├── tests/
-        │   ├── test_client.py        ← happy-path tests for lib/_client.py
-        │   └── test_confluence.py    ← happy-path tests for the CLI (mocked client)
+        │   ├── unit/                 ← happy-path unit tests (mocked, no network)
+        │   │   ├── test_client.py
+        │   │   └── test_confluence.py
+        │   └── integration/          ← live Confluence lifecycle test
+        │       └── test_lifecycle.py
         └── skills/
             └── confluence-api/
                 ├── SKILL.md          ← invocation manifest for Claude Code
@@ -135,11 +140,33 @@ ai-got-skills/
 
 ### Tests
 
-Happy-path unit tests use stdlib `unittest` with the Confluence client mocked — no network, no `atlassian-python-api` install required. Run from the plugin root:
+Use the `Makefile` from the repo root:
 
 ```bash
-cd plugins/atlassian
-python3 -m unittest discover -s tests -v
+make unit          # happy-path unit tests — mocked client, no network
+make integration   # live Confluence lifecycle test (see below)
+make lint          # ruff (pip3 install --user -r requirements-dev.txt)
+```
+
+**Unit tests** use stdlib `unittest` with the Confluence client mocked — no network, no `atlassian-python-api` install required.
+
+**Integration test** runs the full lifecycle against a real Confluence instance — create → update → read → move → delete (it really creates and deletes pages, then cleans up). It's skipped unless these env vars are set:
+
+| Var | Purpose |
+|---|---|
+| `ATLASSIAN_BASE_URL`, `ATLASSIAN_EMAIL`, `ATLASSIAN_API_TOKEN` | Same credentials the skill uses |
+| `INTEGRATION_TEST_SPACE` | A space key you can write to (e.g. `DOCS` or a personal space like `~012345`) |
+
+Set the space key inline, or put it in a gitignored `local-integration-tests.env` at the repo root (the `integration` target sources it automatically if present):
+
+```bash
+# local-integration-tests.env  (gitignored)
+INTEGRATION_TEST_SPACE='~012345'   # quote it — keeps the shell from expanding a leading ~
+```
+
+```bash
+make integration                      # uses local-integration-tests.env if present
+INTEGRATION_TEST_SPACE=DOCS make integration   # or set it inline
 ```
 
 ## License

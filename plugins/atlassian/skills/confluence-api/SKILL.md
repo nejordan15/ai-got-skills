@@ -63,6 +63,18 @@ python3 assets/confluence.py update \
   --page-id <page-id> \
   --body-file body.md \
   --from-markdown
+
+# Move a page under a new parent (re-parent within a space)
+python3 assets/confluence.py move \
+  --page-id <page-id> \
+  --space-key '<space-key>' \
+  --target-id <new-parent-id> \
+  [--position append|above|below]
+
+# Delete (trash) a page
+python3 assets/confluence.py delete \
+  --page-id <page-id> \
+  [--recursive]
 ```
 
 ## Pairing with the Edit tool

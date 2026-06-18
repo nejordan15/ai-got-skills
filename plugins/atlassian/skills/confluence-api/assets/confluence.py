@@ -62,6 +62,7 @@ def cmd_get(args):
         print(body[:1000])
         if len(body) > 1000:
             print(f"... ({len(body)} chars total)")
+    return page
 
 
 def cmd_create(args):
@@ -81,6 +82,7 @@ def cmd_create(args):
     print(f"created page id={page['id']}  title={page['title']}")
     space_key = page.get("space", {}).get("key", args.space_key)
     print(f"url: {CONFLUENCE_BASE_URL}/spaces/{space_key}/pages/{page['id']}")
+    return page
 
 
 def cmd_update(args):
@@ -106,7 +108,7 @@ def cmd_update(args):
         title=title,
         body=body,
         representation=representation,
-        version_comment=args.message or "Updated via atlassian-api skill",
+        version_comment=args.message or "Updated via confluence-api skill",
         full_width=full_width,
     )
     print(
@@ -114,6 +116,31 @@ def cmd_update(args):
         f"version={page['version']['number']}  "
         f"width={'wide' if full_width else 'narrow'}"
     )
+    return page
+
+
+def cmd_move(args):
+    client = confluence_client()
+    # Re-parent the page under target_id within the space. position controls
+    # ordering among siblings (append = last child of the new parent).
+    result = client.move_page(
+        space_key=args.space_key,
+        page_id=args.page_id,
+        target_id=args.target_id,
+        position=args.position,
+    )
+    print(
+        f"moved page id={args.page_id} under target_id={args.target_id} "
+        f"(position={args.position})"
+    )
+    return result
+
+
+def cmd_delete(args):
+    client = confluence_client()
+    client.remove_page(args.page_id, recursive=args.recursive)
+    print(f"deleted page id={args.page_id} (recursive={args.recursive})")
+    return args.page_id
 
 
 def main():
@@ -150,6 +177,27 @@ def main():
              "(default: force to wide via full_width=True)",
     )
     u.set_defaults(func=cmd_update)
+
+    m = sub.add_parser("move", help="Move a page under a new parent")
+    m.add_argument("--page-id", required=True)
+    m.add_argument("--space-key", required=True)
+    m.add_argument("--target-id", required=True, help="new parent page id")
+    m.add_argument(
+        "--position",
+        default="append",
+        choices=("append", "above", "below"),
+        help="placement relative to the target (default: append as last child)",
+    )
+    m.set_defaults(func=cmd_move)
+
+    d = sub.add_parser("delete", help="Delete (trash) a page")
+    d.add_argument("--page-id", required=True)
+    d.add_argument(
+        "--recursive",
+        action="store_true",
+        help="also delete child pages",
+    )
+    d.set_defaults(func=cmd_delete)
 
     args = p.parse_args()
     args.func(args)
