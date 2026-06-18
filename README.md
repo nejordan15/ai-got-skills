@@ -116,6 +116,8 @@ ai-got-skills/
         ├── lib/
         │   └── _client.py            ← shared auth/REST client (used by all skills)
         ├── TODO.md                   ← planned work (e.g. jira-api skill)
+        ├── tests/
+        │   └── test_confluence.py    ← happy-path unit tests (mocked client)
         └── skills/
             └── confluence-api/
                 ├── SKILL.md          ← invocation manifest for Claude Code
@@ -129,6 +131,15 @@ ai-got-skills/
 - **Add a skill to an existing plugin:** create `plugins/<plugin>/skills/<name>/SKILL.md` with YAML frontmatter (`name` + `description`); put helper scripts under `assets/`. It's discovered automatically under the plugin's `skills/` dir.
 - **Add a new plugin:** create `plugins/<name>/.claude-plugin/plugin.json`, then add an entry to `.claude-plugin/marketplace.json` with `source: "./plugins/<name>"`.
 - **After editing:** because the marketplace source is a local `directory`, run `claude plugin marketplace update ai-got-skills` if a change doesn't show up in a new session (plugins are cached on install).
+
+### Tests
+
+Happy-path unit tests use stdlib `unittest` with the Confluence client mocked — no network, no `atlassian-python-api` install required. Run from the plugin root:
+
+```bash
+cd plugins/atlassian
+python3 -m unittest discover -s tests -v
+```
 
 ## License
 
