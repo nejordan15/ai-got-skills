@@ -1,0 +1,15 @@
+{
+  "name": "ai-got-skills",
+  "owner": {
+    "name": "nejordan15",
+    "email": "nejordan15@gmail.com"
+  },
+  "plugins": [
+    {
+      "name": "atlassian",
+      "source": "./plugins/atlassian",
+      "description": "Direct Atlassian REST API access as a faster and more accurate alternative to the MCP.",
+      "version": "0.1.0"
+    }
+  ]
+}

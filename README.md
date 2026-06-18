@@ -1,36 +1,69 @@
 # ai-got-skills
 
-A collection of personal [Claude Code](https://docs.claude.com/en/docs/claude-code) skills. Each one is self-contained under `.claude/skills/<skill-name>/` and can be dropped into any Claude Code project or symlinked from `~/.claude/skills/`.
+A personal [Claude Code](https://docs.claude.com/en/docs/claude-code) **plugin marketplace**. Installing a plugin from here makes its skills available in Claude Code from *any* directory — no per-project copying or symlinking.
 
-## Skills
+- **Marketplace:** `ai-got-skills` (this repo)
+- **Plugins:** `atlassian` (more later)
 
-### atlassian-api
+## Plugins
 
-Direct REST API access to Atlassian Cloud (Confluence; Jira architecture-ready for later). Bypasses the MCP `updateConfluencePage` tool's full-body round-trip — pair with Claude Code's `Edit` tool on a local body file for fast incremental publishes on large Confluence pages.
+### atlassian
 
-See [`.claude/skills/atlassian-api/SKILL.md`](.claude/skills/atlassian-api/SKILL.md) for the full skill manifest.
+Direct REST API access to Atlassian Cloud (Confluence; Jira architecture-ready for later) — a faster, more accurate alternative to the Atlassian MCP.
+
+- **Skill:** `atlassian-api` (invoke as `/atlassian:atlassian-api`; Claude also triggers it automatically by description)
+- **Manifest:** [`plugins/atlassian/skills/atlassian-api/SKILL.md`](plugins/atlassian/skills/atlassian-api/SKILL.md)
 
 **Why it exists:** the standard MCP path requires Claude to emit the entire page body on every update. On a 50 KB page that's many minutes of model output per edit. This skill writes via Atlassian's REST API directly from a local body file, so Claude only emits the diff (via the `Edit` tool). The result is roughly an order-of-magnitude speedup on large-page updates and exact preservation of Confluence-native macros (info panels, table widths, code-block widths) that the MCP path flattens.
 
 ## Install
 
-Clone this repo somewhere, then either symlink the skill into a project's `.claude/skills/` or into your global `~/.claude/skills/`:
+### 1. Clone
 
 ```bash
-git clone <this-repo-url> ~/path/to/ai-got-skills
-cd ~/path/to/ai-got-skills
-
-# Option A — make available to ALL Claude Code projects (recommended):
-ln -s "$PWD/.claude/skills/atlassian-api" ~/.claude/skills/atlassian-api
-
-# Option B — drop into one specific project:
-ln -s "$PWD/.claude/skills/atlassian-api" /path/to/your/project/.claude/skills/atlassian-api
-
-# Install the Python dependency the skill's CLI uses:
-pip3 install --user -r .claude/skills/atlassian-api/requirements.txt
+git clone <this-repo-url> ~/personaldev/ai-got-skills
 ```
 
-Then set three environment variables in your shell rc (e.g. `~/.zshenv` so non-interactive shells pick them up too):
+### 2. Register the marketplace and install the plugin
+
+Either declaratively (recommended — survives reinstalls) by adding to `~/.claude/settings.json`:
+
+```json
+{
+  "enabledPlugins": {
+    "atlassian@ai-got-skills": true
+  },
+  "extraKnownMarketplaces": {
+    "ai-got-skills": {
+      "source": {
+        "source": "directory",
+        "path": "/absolute/path/to/ai-got-skills"
+      }
+    }
+  }
+}
+```
+
+…or via the CLI:
+
+```bash
+claude plugin marketplace add /absolute/path/to/ai-got-skills
+claude plugin install atlassian@ai-got-skills
+```
+
+Confirm it's enabled at user scope:
+
+```bash
+claude plugin list | grep atlassian   # → atlassian@ai-got-skills … ✔ enabled
+```
+
+### 3. Install the Python dependency and set credentials
+
+```bash
+pip3 install --user -r plugins/atlassian/skills/atlassian-api/requirements.txt
+```
+
+Set three environment variables in your shell rc (use `~/.zshenv` so non-interactive shells pick them up too):
 
 ```bash
 export ATLASSIAN_BASE_URL="https://YOUR-DOMAIN.atlassian.net"
@@ -38,12 +71,18 @@ export ATLASSIAN_EMAIL="you@example.com"
 export ATLASSIAN_API_TOKEN="..."   # https://id.atlassian.com/manage-profile/security/api-tokens
 ```
 
+### Prefer the skill over the Atlassian MCP
+
+To make Claude reach for this skill instead of the `mcp__*_Atlassian__*` tools for Confluence work, add a note to your `~/.claude/CLAUDE.md`:
+
+> Prefer the `atlassian-api` skill (`atlassian@ai-got-skills`) over the Atlassian MCP for Confluence — it's faster and more accurate. Fall back to the MCP only for ADF-specific macros or trivial small edits.
+
 ## Standalone CLI use (no Claude Code required)
 
-The skill's Python script is a normal CLI — you can use it directly from any shell:
+The skill's Python script is a normal CLI — use it directly from any shell:
 
 ```bash
-SKILL=.claude/skills/atlassian-api/assets
+SKILL=plugins/atlassian/skills/atlassian-api/assets
 
 # Fetch a page body to a local file
 python3 $SKILL/confluence.py get --page-id <page-id> --out body.html
@@ -61,23 +100,30 @@ python3 $SKILL/confluence.py update \
   --message "what changed"
 ```
 
-See the skill's [SKILL.md](.claude/skills/atlassian-api/SKILL.md) for the full CLI surface, including `--from-markdown` and `--keep-appearance`.
+See [`SKILL.md`](plugins/atlassian/skills/atlassian-api/SKILL.md) for the full CLI surface, including `--from-markdown` and `--keep-appearance`.
 
 ## Layout
 
 ```
 ai-got-skills/
-└── .claude/
-    └── skills/
-        └── <skill-name>/
-            ├── SKILL.md           ← invocation manifest for Claude Code
-            ├── requirements.txt   ← Python deps for the skill's scripts
-            └── assets/            ← scripts the skill invokes
+├── .claude-plugin/
+│   └── marketplace.json              ← marketplace catalog
+└── plugins/
+    └── <plugin-name>/
+        ├── .claude-plugin/
+        │   └── plugin.json           ← plugin manifest (name, version, …)
+        └── skills/
+            └── <skill-name>/
+                ├── SKILL.md          ← invocation manifest for Claude Code
+                ├── requirements.txt  ← Python deps for the skill's scripts
+                └── assets/           ← scripts the skill invokes
 ```
 
 ## Contributing / extending
 
-Adding a new skill: create `.claude/skills/<name>/SKILL.md` with a YAML frontmatter `name` + `description`, then put any helper scripts under `assets/`. See `atlassian-api/SKILL.md` as a template.
+- **Add a skill to an existing plugin:** create `plugins/<plugin>/skills/<name>/SKILL.md` with YAML frontmatter (`name` + `description`); put helper scripts under `assets/`. It's discovered automatically under the plugin's `skills/` dir.
+- **Add a new plugin:** create `plugins/<name>/.claude-plugin/plugin.json`, then add an entry to `.claude-plugin/marketplace.json` with `source: "./plugins/<name>"`.
+- **After editing:** because the marketplace source is a local `directory`, run `claude plugin marketplace update ai-got-skills` if a change doesn't show up in a new session (plugins are cached on install).
 
 ## License
 
