@@ -14,8 +14,6 @@ Registered into the top-level CLI by confluence.py via add_parsers().
 import pathlib
 import sys
 
-import requests
-
 # Shared client constants live at the plugin root: plugins/atlassian/lib/_client.py.
 # From this file (…/skills/confluence-api/assets/folders.py) that's parents[3]/lib.
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[3] / "lib"))
@@ -29,6 +27,10 @@ from _client import (  # noqa: E402
 
 def _session():
     """A requests.Session pre-configured with HTTP Basic auth and JSON headers."""
+    # Imported lazily (like _client's atlassian import) so the module loads
+    # without the runtime dep installed — unit tests mock _session().
+    import requests
+
     s = requests.Session()
     s.auth = (ATLASSIAN_EMAIL, ATLASSIAN_API_TOKEN)
     s.headers.update({"Accept": "application/json", "Content-Type": "application/json"})
