@@ -44,10 +44,10 @@ class ConfluenceLifecycleIT(unittest.TestCase):
     def test_create_update_read_move_delete(self):
         # Imported here (not at module top) so a missing credential skips the
         # test instead of triggering _client's hard exit during collection.
-        import confluence
+        import pages
 
         space = os.environ["INTEGRATION_TEST_SPACE"]
-        client = confluence.confluence_client()
+        client = pages.confluence_client()
         suffix = f"{int(time.time())}-{os.getpid()}"
         parent_title = f"[itest parent] {suffix}"
         child_title = f"[itest child] {suffix}"
@@ -59,12 +59,12 @@ class ConfluenceLifecycleIT(unittest.TestCase):
 
                 # 1. Create the move target (parent) and the page under test (child).
                 body_file.write_text("<p>integration test v1</p>")
-                parent = confluence.cmd_create(
+                parent = pages.cmd_create(
                     _ns(space_key=space, title=parent_title, body_file=str(body_file),
                         parent_id=None, from_markdown=False)
                 )
                 to_clean.append(parent["id"])
-                child = confluence.cmd_create(
+                child = pages.cmd_create(
                     _ns(space_key=space, title=child_title, body_file=str(body_file),
                         parent_id=None, from_markdown=False)
                 )
@@ -73,7 +73,7 @@ class ConfluenceLifecycleIT(unittest.TestCase):
 
                 # 2. Update the child's body.
                 body_file.write_text("<p>integration test v2 — updated</p>")
-                updated = confluence.cmd_update(
+                updated = pages.cmd_update(
                     _ns(page_id=child_id, body_file=str(body_file), title=None,
                         message="integration test update", from_markdown=False,
                         keep_appearance=False)
@@ -81,11 +81,11 @@ class ConfluenceLifecycleIT(unittest.TestCase):
                 self.assertGreaterEqual(updated["version"]["number"], 2)
 
                 # 3. Read it back and confirm the update landed.
-                fetched = confluence.cmd_get(_ns(page_id=child_id, out=None))
+                fetched = pages.cmd_get(_ns(page_id=child_id, out=None))
                 self.assertIn("updated", fetched["body"]["storage"]["value"])
 
                 # 4. Move the child under the parent.
-                confluence.cmd_move(
+                pages.cmd_move(
                     _ns(page_id=child_id, space_key=space, target_id=parent["id"],
                         position="append")
                 )
@@ -96,8 +96,8 @@ class ConfluenceLifecycleIT(unittest.TestCase):
                 self.assertIn(parent["id"], ancestor_ids)
 
                 # 6. Delete both pages through the script; mark them cleaned.
-                confluence.cmd_delete(_ns(page_id=child_id, recursive=False))
-                confluence.cmd_delete(_ns(page_id=parent["id"], recursive=False))
+                pages.cmd_delete(_ns(page_id=child_id, recursive=False))
+                pages.cmd_delete(_ns(page_id=parent["id"], recursive=False))
                 to_clean = []
         finally:
             # Best-effort cleanup for anything left if an assertion failed midway.

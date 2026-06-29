@@ -7,11 +7,14 @@ description: Direct Confluence REST API access via the atlassian-python-api libr
 
 Direct REST API access to Confluence Cloud. Bypasses the MCP `updateConfluencePage` tool's full-body round-trip — pair with the `Edit` tool on a local body file for fast incremental publishes. (Jira will get its own sibling `jira-api` skill — not yet implemented; the shared client at `plugins/atlassian/lib/_client.py` already supports it.)
 
+The CLI is a thin dispatcher (`assets/confluence.py`) over two backends in the same directory: `pages.py` (page commands, via the `atlassian-python-api` library) and `folders.py` (folder commands, via the v2 REST API directly — the library does not wrap the folder content type).
+
 ## When to use
 
 - Updating a Confluence page where the body is large (>2K tokens) and changes are localized — bypassing MCP saves minutes per publish.
 - Creating new pages programmatically.
 - Fetching page body to a local file for offline editing.
+- Creating/organizing **folders** (the v2 content type the MCP and the library don't expose).
 - Any operation where you'd otherwise re-emit the full page body through me.
 
 ## When NOT to use
@@ -76,6 +79,39 @@ python3 assets/confluence.py delete \
   --page-id <page-id> \
   [--recursive]
 ```
+
+### Folders
+
+Folders are a separate Confluence content type. These commands hit the v2 REST API
+(`/wiki/api/v2/folders`) directly because neither the MCP tool nor the
+`atlassian-python-api` library wraps folders.
+
+```bash
+# Create a folder (resolve the space key to its numeric id automatically).
+# --parent-id may be a page OR another folder; omit it for the space root.
+python3 assets/confluence.py folder create \
+  --space-key '<space-key>' \
+  --title "2025" \
+  [--parent-id <page-or-folder-id>]
+# or skip the key->id lookup with --space-id <numeric-id>
+
+# Fetch a folder (add --children to list its direct children)
+python3 assets/confluence.py folder get --folder-id <id> [--children]
+
+# Move a folder under a new parent page or folder
+python3 assets/confluence.py folder move \
+  --folder-id <id> \
+  --target-id <new-parent-id> \
+  [--position append|above|below]
+```
+
+Notes:
+- `create` needs the numeric `spaceId`; pass `--space-key` to resolve it via the v2
+  spaces API, or `--space-id` to skip the lookup.
+- The v2 folders API has **no** move endpoint, so `folder move` reuses the legacy
+  content-move endpoint (`PUT /rest/api/content/{id}/move/{position}/{targetId}`) —
+  the same one page moves use.
+- There is intentionally no `folder delete` command; trash folders from the UI.
 
 ## Pairing with the Edit tool
 
