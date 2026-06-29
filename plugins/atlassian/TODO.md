@@ -14,6 +14,14 @@ Mirror the `confluence-api` skill for Jira, sharing the common client.
 
 - [ ] Promote `skills/confluence-api/requirements.txt` to a single plugin-level `requirements.txt` (the shared `atlassian-python-api` dep belongs with `lib/`, not one skill). Update both SKILL.md files and the README install step to point at it.
 
+## Possible future cleanup: unify the Confluence backends
+
+`skills/confluence-api/assets/` currently has two backends: `pages.py` (via the
+`atlassian-python-api` library) and `folders.py` (raw v2 REST, because the library
+doesn't wrap the folder content type). A future refactor could collapse both onto a
+single hand-written client in `lib/` and drop the library dependency — not worth it
+yet.
+
 ## Notes
 
 - Keep both skills in the **one** `atlassian` plugin (one version, one install). Don't split into separate plugins.
